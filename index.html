@@ -4,19 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rockeklubben Scheduler</title>
-    <!-- FullCalendar CSS (loaded from CDN) -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/@fullcalendar/common@6.1.20/main.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.20/main.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@6.1.20/main.min.css"
-      rel="stylesheet"
-    />
+    <!-- FullCalendar CSS imported from node_modules (bundled by Vite in dev/build) -->
+    <!-- Removed CDN <link> tags to avoid CORB/CSP/version-mismatch issues -->
   </head>
   <body>
     <div id="root"></div>

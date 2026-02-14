@@ -1,3 +1,8 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 :root {
   --accent: #0b5fff;
   --muted: #666;
@@ -17,7 +22,7 @@ body {
   color: #111;
 }
 .app-container {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 28px auto;
   padding: 20px;
 }
@@ -26,6 +31,7 @@ body {
   gap: 20px;
   align-items: flex-start;
   min-width: 0; /* allow children to shrink */
+  flex-wrap: wrap; /* allow sidebar/calendar to wrap on narrow widths */
 }
 .external-container {
   width: 220px;
@@ -37,11 +43,13 @@ body {
   border-radius: 8px;
 }
 .fc-external {
-  background: linear-gradient(180deg, #fff, #f3f6ff);
+  background: linear-gradient(180deg, goldenrod, gold);
+  box-shadow: 0px 1px 0px 2.5px;
   border-radius: 6px;
   padding: 8px 10px;
   margin: 6px 0;
   border: 1px solid #dfe9ff;
+  font-weight: bolder;
   cursor: grab;
 }
 .fc-external:active {
@@ -69,6 +77,7 @@ h1 {
 }
 small {
   text-align: center;
+  font-weight: 900;
 }
 
 /* Toasts */
@@ -182,40 +191,63 @@ small {
 }
 
 /* Responsive layout */
-@media (max-width: 900px) {
+/* Consolidated: use the 1100px breakpoint for tablet+ stacking (900px block removed) */
+
+/* Wider breakpoint so the app becomes responsive earlier on laptops/tablets */
+@media (max-width: 1100px) {
   .app-container {
-    margin: 16px;
-    padding: 14px;
+    max-width: 100%;
+    margin: 12px;
+    padding: 12px;
   }
   .layout {
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
   .external-container {
     width: 100%;
     flex: none;
     order: 1;
+    max-height: 160px;
+    overflow: auto;
   }
   .calendar-container {
     order: 2;
+    padding: 10px;
   }
-  h1 {
-    font-size: 1.25rem;
-    padding: 8px;
-  }
-  .modal {
-    min-width: 90%;
-    max-width: 720px;
-  }
-  .toast-viewport {
-    left: 12px;
-    right: 12px;
-    bottom: 12px;
+
+  /* Force FullCalendar toolbar to wrap earlier and keep title centered */
+  .calendar-container .fc .fc-header-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
     align-items: center;
   }
-  .toast {
-    width: 100%;
-    max-width: 420px;
+  .calendar-container .fc .fc-toolbar-chunk {
+    min-width: 0;
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+  .calendar-container .fc .fc-toolbar-chunk-c {
+    order: -1;
+    flex-basis: 100%;
+  }
+  .calendar-container .fc .fc-toolbar-title {
+    white-space: normal;
+    text-align: center;
+    font-size: 1.05rem;
+    margin: 0 6px;
+    overflow-wrap: anywhere;
+  }
+  .calendar-container .fc .fc-button-group {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* keep grid natural width on tablet/desktop; horizontal scroll only on very small screens */
+  .calendar-container .fc .fc-scrollgrid {
+    /* no forced min-width or horizontal scroll here to avoid overflow */
+    overflow-x: visible;
   }
 }
 
@@ -223,13 +255,96 @@ small {
   :root {
     font-size: 14px;
   }
-  .external-container {
+
+  /* give the page more usable width on tiny screens */
+  .app-container {
+    margin: 8px;
     padding: 10px;
   }
-  .fc-external {
-    padding: 8px;
-    font-size: 14px;
+  .layout {
+    gap: 8px;
   }
+
+  /* compact sidebar but keep available horizontally if needed */
+  .external-container {
+    padding: 8px;
+    max-height: 140px;
+    overflow-x: auto;
+  }
+  .fc-external {
+    padding: 6px 8px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  /* reduce calendar padding and allow horizontal scrolling instead of shrinking columns */
+  .calendar-container {
+    padding: 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .calendar-container .fc .fc-scrollgrid {
+    min-width: 0; /* allow grid to shrink; horizontal scroll will appear only if content requires it */
+    max-width: 100%;
+  }
+
+  /* stack weekday + date but keep each part unbroken */
+  .calendar-container .fc .fc-col-header-cell-cushion {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 2px !important;
+    white-space: normal !important; /* allow compact wrapping */
+    padding: 2px 6px !important;
+    font-size: 11px !important;
+    line-height: 1 !important;
+  }
+  .calendar-container .fc .fc-daygrid-day-number {
+    font-weight: 600;
+    white-space: normal !important;
+    font-size: 11px !important;
+  }
+  .calendar-container .fc .fc-col-header-cell {
+    padding: 2px 4px !important;
+  }
+
+  /* compact, horizontally-scrollable sidebar for the tiniest devices (keeps draggable names accessible) */
+  @media (max-width: 360px) {
+    .external-container {
+      display: block;
+      width: 100%;
+      max-height: 80px;
+      padding: 6px 4px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      white-space: nowrap;
+      box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.03);
+      border-radius: 6px;
+    }
+    .external-container h3 {
+      display: inline-block;
+      margin-right: 8px;
+      vertical-align: middle;
+      font-size: 14px;
+    }
+    .external-container .fc-external {
+      display: inline-flex !important;
+      vertical-align: middle;
+      margin: 4px 8px 4px 0;
+      min-width: 120px;
+      padding: 6px 10px;
+      white-space: nowrap;
+    }
+    .app-container {
+      margin: 6px;
+      padding: 8px;
+    }
+    .calendar-container .fc .fc-scrollgrid {
+      min-width: 0;
+      max-width: 100%;
+    }
+  }
+
   .modal {
     padding: 12px;
     min-width: 280px;

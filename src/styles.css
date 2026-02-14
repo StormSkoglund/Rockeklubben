@@ -1,0 +1,240 @@
+:root {
+  --accent: #0b5fff;
+  --muted: #666;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial;
+}
+body {
+  margin: 0;
+  background: #fafafa;
+  color: #111;
+}
+.app-container {
+  max-width: 1100px;
+  margin: 28px auto;
+  padding: 20px;
+}
+.layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  min-width: 0; /* allow children to shrink */
+}
+.external-container {
+  width: 220px;
+  flex: 0 0 220px;
+  min-width: 160px;
+  background: #fff;
+  border: 1px solid #eee;
+  padding: 12px;
+  border-radius: 8px;
+}
+.fc-external {
+  background: linear-gradient(180deg, #fff, #f3f6ff);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 6px 0;
+  border: 1px solid #dfe9ff;
+  cursor: grab;
+}
+.fc-external:active {
+  cursor: grabbing;
+}
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.calendar-container {
+  flex: 1;
+  background: #fff;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+h1 {
+  margin: 0 0 12px 0;
+  background-color: goldenrod;
+  box-shadow: 0px 2px 0px 5px;
+  border-radius: 5px;
+  text-align: center;
+  padding: 10px 0px 10px 0px;
+}
+small {
+  text-align: center;
+}
+
+/* Toasts */
+.toast-viewport {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 9999;
+}
+.toast {
+  background: #111;
+  color: #fff;
+  padding: 10px 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.2);
+  min-width: 220px;
+}
+.toast-message {
+  flex: 1;
+  font-size: 13px;
+}
+.toast-action {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.toast-close {
+  background: transparent;
+  border: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 18px;
+  line-height: 1;
+  padding: 0 6px;
+  cursor: pointer;
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal {
+  background: #fff;
+  border-radius: 10px;
+  padding: 18px;
+  min-width: 320px;
+  box-shadow: 0 20px 60px rgba(2, 6, 23, 0.2);
+}
+.modal h3 {
+  margin: 0 0 8px;
+}
+.modal-row {
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.btn {
+  background: #0b5fff;
+  color: #fff;
+  border: 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btn-danger {
+  background: #d9534f;
+}
+.reschedule {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.reschedule input[type="date"] {
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.notice {
+  background: #fff4e5;
+  border: 1px solid #ffd7a8;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.app-footer {
+  margin-top: 20px;
+  text-align: center;
+  color: var(--muted);
+  padding: 10px 0;
+  font-size: 13px;
+}
+
+/* Responsive layout */
+@media (max-width: 900px) {
+  .app-container {
+    margin: 16px;
+    padding: 14px;
+  }
+  .layout {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .external-container {
+    width: 100%;
+    flex: none;
+    order: 1;
+  }
+  .calendar-container {
+    order: 2;
+  }
+  h1 {
+    font-size: 1.25rem;
+    padding: 8px;
+  }
+  .modal {
+    min-width: 90%;
+    max-width: 720px;
+  }
+  .toast-viewport {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    align-items: center;
+  }
+  .toast {
+    width: 100%;
+    max-width: 420px;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    font-size: 14px;
+  }
+  .external-container {
+    padding: 10px;
+  }
+  .fc-external {
+    padding: 8px;
+    font-size: 14px;
+  }
+  .modal {
+    padding: 12px;
+    min-width: 280px;
+  }
+  .app-footer {
+    font-size: 12px;
+  }
+}

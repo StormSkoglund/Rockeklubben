@@ -35,6 +35,9 @@ export default function Calendar() {
   }>(null);
   const [supabaseError, setSupabaseError] = useState<string | null>(null);
 
+  // confirmation pending state used to force toast confirmation before reseed
+  const [seedConfirmationPending, setSeedConfirmationPending] = useState(false);
+
   useEffect(() => {
     loadBookings();
 
@@ -160,6 +163,131 @@ export default function Calendar() {
     });
   }
 
+  // Weekly schedule template (used by the "Seed weekly schedule" action)
+  const WEEKLY_TEMPLATES: Array<{
+    names: string | string[];
+    weekday: number; // 0=Sun .. 6=Sat
+    startTime: string; // "HH:MM"
+    endTime: string; // "HH:MM"
+  }> = [
+    {
+      names: "Silver Monochrome",
+      weekday: 1,
+      startTime: "18:00",
+      endTime: "22:00",
+    }, // Monday
+    {
+      names: "Young Collection",
+      weekday: 2,
+      startTime: "16:00",
+      endTime: "20:00",
+    }, // Tuesday
+    {
+      names: "Blue Experience",
+      weekday: 3,
+      startTime: "16:00",
+      endTime: "20:30",
+    }, // Wednesday
+    {
+      names: ["Warfart", "Verdiløse Menn"],
+      weekday: 4,
+      startTime: "18:00",
+      endTime: "23:00",
+    }, // Thursday (alternate weekly)
+    { names: "Dødsdau", weekday: 5, startTime: "18:00", endTime: "23:00" }, // Friday
+    { names: "Notörious", weekday: 6, startTime: "14:00", endTime: "18:00" }, // Saturday (early)
+    { names: "Storm Valley", weekday: 6, startTime: "18:30", endTime: "23:00" }, // Saturday (late)
+    { names: "Tommy Cash", weekday: 0, startTime: "18:00", endTime: "23:00" }, // Sunday
+  ];
+
+  function getDateForWeekday(base: Date, weekday: number, weekOffset = 0) {
+    const d = new Date(base);
+    const diff = (weekday - d.getDay() + 7) % 7;
+    d.setDate(d.getDate() + diff + weekOffset * 7);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+
+  function setTime(dt: Date, timeStr: string) {
+    const [hh, mm] = timeStr.split(":").map((n) => parseInt(n, 10));
+    const d = new Date(dt);
+    d.setHours(hh, mm, 0, 0);
+    return d;
+  }
+
+  // Manually seed the weekly plan into the bookings table for N weeks
+  async function seedWeeklySchedule(weeks = 52) {
+    if (!isSupabaseConfigured) {
+      pushToast({
+        id: `seed-nosb-${Date.now()}`,
+        message: "Supabase not configured — cannot seed schedule.",
+      });
+      return;
+    }
+
+    // (confirmation moved to toast) — proceed with seeding
+    pushToast({
+      id: `seed-start-${Date.now()}`,
+      message: `Seeding weekly schedule (${weeks} weeks)...`,
+    });
+
+    const today = new Date();
+    let inserted = 0;
+    let skipped = 0;
+    let failed = 0;
+
+    for (let w = 0; w < weeks; w++) {
+      for (const tpl of WEEKLY_TEMPLATES) {
+        const bandName = Array.isArray(tpl.names)
+          ? tpl.names[w % tpl.names.length]
+          : tpl.names;
+        const dayDate = getDateForWeekday(today, tpl.weekday, w);
+        const startDt = setTime(dayDate, tpl.startTime);
+        const endDt = setTime(dayDate, tpl.endTime);
+
+        try {
+          const { data, error } = await supabase
+            .from("bookings")
+            .insert([
+              {
+                start_ts: startDt.toISOString(),
+                end_ts: endDt.toISOString(),
+                user_name: bandName,
+                date: toYMD(startDt),
+              },
+            ])
+            .select()
+            .single();
+
+          if (error || !data) {
+            // likely overlap / constraint — count as skipped
+            skipped++;
+            continue;
+          }
+
+          inserted++;
+          setEvents((prev) => [
+            ...prev,
+            {
+              id: data.id,
+              title: data.user_name,
+              start: data.start_ts,
+              end: data.end_ts,
+            },
+          ]);
+        } catch (err) {
+          console.error("Seed error", err);
+          failed++;
+        }
+      }
+    }
+
+    pushToast({
+      id: `seed-done-${Date.now()}`,
+      message: `Seeding finished — added ${inserted}, skipped ${skipped}, failed ${failed}.`,
+    });
+  }
+
   // External name dropped onto a date
   async function handleEventReceive(info: any) {
     const event = info.event;
@@ -190,7 +318,8 @@ export default function Calendar() {
     if (isRangeBooked(start, end)) {
       pushToast({
         id: `err-overlap-${Date.now()}`,
-        message: "Time slot overlaps an existing booking.",
+        message:
+          "Time slot overlaps an existing booking — please contact the band to request permission.",
       });
       info.revert();
       return;
@@ -279,7 +408,8 @@ export default function Calendar() {
     if (isRangeBooked(newStart, newEnd, id)) {
       pushToast({
         id: `err-overlap-${Date.now()}`,
-        message: "That time overlaps another booking.",
+        message:
+          "That time overlaps another booking — please contact the band to request permission.",
       });
       info.revert();
       return;
@@ -426,75 +556,128 @@ export default function Calendar() {
 
   return (
     <div className="calendar-container">
-      <FullCalendar
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        initialView="timeGridWeek"
-        headerToolbar={{
-          left: "prev,next today",
-          center: "title",
-          right: "dayGridMonth,timeGridWeek,timeGridDay",
-        }}
-        slotDuration="01:00:00"
-        slotLabelFormat={{ hour: "2-digit", minute: "2-digit", hour12: false }}
-        eventTimeFormat={{ hour: "2-digit", minute: "2-digit", hour12: false }}
-        droppable={true}
-        editable={true}
-        selectable={true}
-        events={events}
-        eventReceive={handleEventReceive}
-        eventAllow={eventAllow}
-        eventDrop={handleEventDrop}
-        eventResize={async (info) => {
-          // when resized, update DB (similar to drop)
-          const id = info.event.id as string;
-          const newStart = info.event.start as Date;
-          const newEnd = info.event.end as Date;
-          if (!newStart || !newEnd) {
-            info.revert();
-            return;
-          }
-          if (isRangeBooked(newStart, newEnd, id)) {
+      <div className="calendar-scroll-wrapper">
+        <FullCalendar
+          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+          initialView="timeGridWeek"
+          headerToolbar={{
+            left: "prev,next today",
+            center: "title",
+            right: "dayGridMonth,timeGridWeek,timeGridDay",
+          }}
+          slotDuration="01:00:00"
+          slotLabelFormat={{
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          }}
+          eventTimeFormat={{
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          }}
+          droppable={true}
+          editable={true}
+          selectable={true}
+          events={events}
+          eventReceive={handleEventReceive}
+          eventAllow={eventAllow}
+          eventDrop={handleEventDrop}
+          eventResize={async (info) => {
+            // when resized, update DB (similar to drop)
+            const id = info.event.id as string;
+            const newStart = info.event.start as Date;
+            const newEnd = info.event.end as Date;
+            if (!newStart || !newEnd) {
+              info.revert();
+              return;
+            }
+            if (isRangeBooked(newStart, newEnd, id)) {
+              pushToast({
+                id: `err-overlap-${Date.now()}`,
+                message:
+                  "That time overlaps an existing booking — please contact the band to request permission.",
+              });
+              info.revert();
+              return;
+            }
+            const { data, error } = await supabase
+              .from("bookings")
+              .update({
+                start_ts: newStart.toISOString(),
+                end_ts: newEnd.toISOString(),
+                date: toYMD(newStart),
+              })
+              .eq("id", id)
+              .select()
+              .single();
+            if (error || !data) {
+              pushToast({
+                id: `err-resize-${Date.now()}`,
+                message: "Failed to save resized booking.",
+              });
+              info.revert();
+              return;
+            }
+            setEvents((prev) =>
+              prev.map((e) =>
+                e.id === id
+                  ? { ...e, start: data.start_ts, end: data.end_ts }
+                  : e,
+              ),
+            );
             pushToast({
-              id: `err-overlap-${Date.now()}`,
-              message: "That time overlaps an existing booking.",
+              id,
+              message: `Updated ${data.user_name} → ${new Date(data.start_ts).toLocaleString(undefined, { hour12: false, hour: "2-digit", minute: "2-digit", day: "2-digit", month: "short", year: "numeric" })}`,
             });
-            info.revert();
-            return;
-          }
-          const { data, error } = await supabase
-            .from("bookings")
-            .update({
-              start_ts: newStart.toISOString(),
-              end_ts: newEnd.toISOString(),
-              date: toYMD(newStart),
-            })
-            .eq("id", id)
-            .select()
-            .single();
-          if (error || !data) {
-            pushToast({
-              id: `err-resize-${Date.now()}`,
-              message: "Failed to save resized booking.",
-            });
-            info.revert();
-            return;
-          }
-          setEvents((prev) =>
-            prev.map((e) =>
-              e.id === id
-                ? { ...e, start: data.start_ts, end: data.end_ts }
-                : e,
-            ),
-          );
-          pushToast({
-            id,
-            message: `Updated ${data.user_name} → ${new Date(data.start_ts).toLocaleString(undefined, { hour12: false, hour: "2-digit", minute: "2-digit", day: "2-digit", month: "short", year: "numeric" })}`,
-          });
-        }}
-        eventClick={handleEventClick}
-        ref={calendarRef}
-        height="auto"
-      />
+          }}
+          eventClick={handleEventClick}
+          ref={calendarRef}
+          height="parent"
+          scrollTime="18:00:00"
+        />
+      </div>
+
+      {isSupabaseConfigured && (
+        <div style={{ marginTop: 12 }}>
+          <button
+            className="btn"
+            onClick={() => {
+              if (seedConfirmationPending) {
+                // already pending — remind user to confirm via toast
+                pushToast({
+                  id: `seed-remind-${Date.now()}`,
+                  message: "Bekreft i varselet (toast) for å gjenstarte ukeplanen.",
+                });
+                return;
+              }
+
+              // show confirmation toast (user must click "Bekreft" in the toast)
+              setSeedConfirmationPending(true);
+              const toastId = `seed-confirm-${Date.now()}`;
+              pushToast({
+                id: toastId,
+                message: `ADVARSEL: Gjenstart ukeplan for de neste 52 ukene. Dette vil opprette bookings i databasen. Er du sikker?`,
+                actionLabel: "Bekreft",
+                onAction: async () => {
+                  setSeedConfirmationPending(false);
+                  await seedWeeklySchedule(52);
+                },
+              });
+
+              // clear pending flag when toast auto-expires (slight buffer)
+              setTimeout(() => setSeedConfirmationPending(false), 8000);
+            }}
+            disabled={seedConfirmationPending}
+          >
+            {seedConfirmationPending ? "Bekreft i varselet..." : "Gjenstart ukeplan (52 uker)"}
+          </button>
+          <small style={{ marginLeft: 8, color: "#666" }}>
+            Denne knappen gjenskaper ukeplanen for 52 uker frem i tid. Du må
+            trykke "Bekreft" i varselet for å fullføre handlingen.
+          </small>
+        </div>
+      )}
 
       {modalEvent && (
         <div className="modal-backdrop" onClick={() => setModalEvent(null)}>

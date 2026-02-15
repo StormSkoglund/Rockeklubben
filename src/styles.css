@@ -67,6 +67,20 @@ body {
   border-radius: 8px;
   border: 1px solid #eee;
 }
+
+/* Make the calendar vertically scrollable and default to evening hours */
+.calendar-scroll-wrapper {
+  /* responsive height: allow the calendar to fill most of the viewport without exceeding it */
+  height: clamp(360px, 68vh, 920px);
+  min-height: 320px;
+  max-height: 92vh;
+}
+
+/* Ensure FullCalendar uses parent height so the time-grid becomes scrollable */
+.calendar-scroll-wrapper .fc {
+  height: 100%;
+}
+
 h1 {
   margin: 0 0 12px 0;
   background-color: goldenrod;
@@ -153,12 +167,13 @@ small {
   gap: 10px;
 }
 .btn {
-  background: #0b5fff;
+  background: #b12c14;
   color: #fff;
   border: 0;
   padding: 8px 10px;
   border-radius: 6px;
   cursor: pointer;
+  margin-top: 5em;
 }
 .btn-danger {
   background: #d9534f;

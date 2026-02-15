@@ -47,10 +47,16 @@ export default function DraggableNames() {
           {n}
         </div>
       ))}
+      <strong>Booking</strong>
       <p className="hint">
-        Drag a name onto a time slot to book (default 1 hour). You can resize
-        events to extend duration; multiple names per day allowed as long as
-        hours don't overlap.
+        Dra et navn til et tidsrom for å booke (standard 1 time). Du kan endre
+        varigheten på hendelsene for å forlenge dem; flere navn per dag er
+        tillatt så lenge tidene ikke overlapper.
+      </p>
+      <strong>Slette Booking</strong>
+      <p className="hint">
+        Slett booking ved å trykke venstre musetast på bandets navn i
+        kalenderen.
       </p>
     </div>
   );

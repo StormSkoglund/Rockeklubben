@@ -12,7 +12,9 @@ function loadDotEnvFile() {
     for (const line of content.split(/\r?\n/)) {
       const trimmed = line.trim();
       if (!trimmed || trimmed.startsWith("#")) continue;
-      const m = trimmed.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?:"([^"\\]*(?:\\.[^"\\]*)*)"|'([^']*)'|(.+))$/);
+      const m = trimmed.match(
+        /^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?:"([^"\\]*(?:\\.[^"\\]*)*)"|'([^']*)'|(.+))$/,
+      );
       if (!m) continue;
       const key = m[1];
       const val = m[2] ?? m[3] ?? m[4] ?? "";
@@ -26,20 +28,43 @@ function loadDotEnvFile() {
 loadDotEnvFile();
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+const SUPABASE_ANON_KEY =
+  process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.error("Missing Supabase credentials. Set SUPABASE_URL and SUPABASE_ANON_KEY (or VITE_ variants).");
+  console.error(
+    "Missing Supabase credentials. Set SUPABASE_URL and SUPABASE_ANON_KEY (or VITE_ variants).",
+  );
   process.exit(1);
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const WEEKLY_TEMPLATES = [
-  { names: "Silver Monochrome", weekday: 1, startTime: "18:00", endTime: "22:00" },
-  { names: "Young Collection", weekday: 2, startTime: "16:00", endTime: "20:00" },
-  { names: "Blue Experience", weekday: 3, startTime: "16:00", endTime: "20:30" },
-  { names: ["Warfart", "Verdiløse Menn"], weekday: 4, startTime: "18:00", endTime: "23:00" },
+  {
+    names: "Silver Monochrome",
+    weekday: 1,
+    startTime: "18:00",
+    endTime: "22:00",
+  },
+  {
+    names: "Young Collection",
+    weekday: 2,
+    startTime: "16:00",
+    endTime: "20:00",
+  },
+  {
+    names: "Blue Experience",
+    weekday: 3,
+    startTime: "16:00",
+    endTime: "20:30",
+  },
+  {
+    names: ["Warfart", "Verdiløse Menn"],
+    weekday: 4,
+    startTime: "18:00",
+    endTime: "23:00",
+  },
   { names: "Dødsdau", weekday: 5, startTime: "18:00", endTime: "23:00" },
   { names: "Notörious", weekday: 6, startTime: "14:00", endTime: "18:00" },
   { names: "Storm Valley", weekday: 6, startTime: "18:30", endTime: "23:00" },
@@ -67,7 +92,10 @@ function toYMD(d) {
 
 async function confirmPrompt(question) {
   return new Promise((res) => {
-    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
     rl.question(question, (ans) => {
       rl.close();
       res(/^y(es)?$/i.test(ans));
@@ -93,7 +121,9 @@ async function main() {
   }
 
   if (!autoYes) {
-    const ok = await confirmPrompt(`Insert weekly schedule for the next ${weeks} weeks? (yes/no) `);
+    const ok = await confirmPrompt(
+      `Insert weekly schedule for the next ${weeks} weeks? (yes/no) `,
+    );
     if (!ok) {
       console.log("Aborted by user.");
       process.exit(0);
@@ -108,7 +138,9 @@ async function main() {
 
   for (let w = 0; w < weeks; w++) {
     for (const tpl of WEEKLY_TEMPLATES) {
-      const bandName = Array.isArray(tpl.names) ? tpl.names[w % tpl.names.length] : tpl.names;
+      const bandName = Array.isArray(tpl.names)
+        ? tpl.names[w % tpl.names.length]
+        : tpl.names;
       const dayDate = getDateForWeekday(today, tpl.weekday, w);
       const startDt = setTime(dayDate, tpl.startTime);
       const endDt = setTime(dayDate, tpl.endTime);
@@ -130,7 +162,10 @@ async function main() {
         if (error || !data) {
           skipped++;
           // log cause for visibility
-          if (error) console.log(`Skipped ${bandName} ${toYMD(startDt)} (${error.message || error.details || "constraint"})`);
+          if (error)
+            console.log(
+              `Skipped ${bandName} ${toYMD(startDt)} (${error.message || error.details || "constraint"})`,
+            );
           continue;
         }
 
@@ -138,14 +173,19 @@ async function main() {
         process.stdout.write(`+`);
       } catch (err) {
         failed++;
-        console.error(`Error inserting ${bandName} on ${toYMD(startDt)}:`, err instanceof Error ? err.message : String(err));
+        console.error(
+          `Error inserting ${bandName} on ${toYMD(startDt)}:`,
+          err instanceof Error ? err.message : String(err),
+        );
       }
     }
     // small flush for readability
     if (w % 5 === 0) process.stdout.write(` (${w + 1}/${weeks} weeks)\n`);
   }
 
-  console.log(`\nDone — inserted: ${inserted}, skipped: ${skipped}, failed: ${failed}`);
+  console.log(
+    `\nDone — inserted: ${inserted}, skipped: ${skipped}, failed: ${failed}`,
+  );
   process.exit(0);
 }
 

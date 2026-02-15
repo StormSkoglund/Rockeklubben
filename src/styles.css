@@ -51,9 +51,65 @@ body {
   border: 1px solid #dfe9ff;
   font-weight: bolder;
   cursor: grab;
+  /* mobile / touch: ensure pointer events go to the draggable item (prevent container/page panning) */
+  touch-action: none;
+  -ms-touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
 }
 .fc-external:active {
   cursor: grabbing;
+  touch-action: none;
+}
+
+/* while dragging, prevent the browser from converting the gesture into a
+   page/container scroll so touchmove events remain cancelable (prevents the
+   "cancelable=false" console warning). */
+html.is-dragging,
+body.is-dragging {
+  touch-action: none !important;
+  -ms-touch-action: none !important;
+  overscroll-behavior: contain !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Ensure the FullCalendar drag mirror / moving-event elements are touch-friendly
+   so touchmove remains cancelable while dragging. Mirrors are appended to
+   document.body by the interaction plugin (fc-event-mirror / fc-event-dragging). */
+.fc-event-mirror,
+.fc-event-dragging,
+.fc-event.fc-event-mirror,
+.fc-event.fc-event-dragging {
+  touch-action: none !important;
+  -ms-touch-action: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-user-drag: none !important;
+}
+
+/* make sure child elements of the mirror inherit touch-action so the
+   browser does not treat the gesture as a scroll */
+.fc-event-mirror * { touch-action: none !important; }
+
+/* Sidebar is horizontally scrollable on small screens — allow horizontal
+   panning there but avoid the browser deciding the gesture is a vertical
+   page scroll when touching a draggable item. */
+.external-container {
+  touch-action: pan-x;
+  -ms-touch-action: pan-x;
+}
+
+/* Calendar area should primarily pan vertically — prevent horizontal
+   interpretation while dragging/resizing inside the calendar. */
+.calendar-container,
+.calendar-scroll-wrapper,
+.calendar-container .fc {
+  touch-action: pan-y;
+  -ms-touch-action: pan-y;
 }
 .hint {
   font-size: 12px;
@@ -88,6 +144,15 @@ h1 {
   border-radius: 5px;
   text-align: center;
   padding: 10px 0px 10px 0px;
+}
+
+/* emoji groups inside the H1 — hide on small screens */
+.h1-emoji {
+  display: inline-block;
+  margin: 0 6px;
+  line-height: 1;
+  vertical-align: middle;
+  font-size: 1.06em; /* keep emoji visually balanced */
 }
 small {
   text-align: center;
@@ -271,6 +336,9 @@ small {
     font-size: 14px;
   }
 
+  /* hide decorative emoji in the H1 on small screens to tidy the header */
+  .h1-emoji { display: none !important; }
+
   /* give the page more usable width on tiny screens */
   .app-container {
     margin: 8px;
@@ -323,42 +391,7 @@ small {
     padding: 2px 4px !important;
   }
 
-  /* compact, horizontally-scrollable sidebar for the tiniest devices (keeps draggable names accessible) */
-  @media (max-width: 360px) {
-    .external-container {
-      display: block;
-      width: 100%;
-      max-height: 80px;
-      padding: 6px 4px;
-      overflow-x: auto;
-      overflow-y: hidden;
-      white-space: nowrap;
-      box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.03);
-      border-radius: 6px;
-    }
-    .external-container h3 {
-      display: inline-block;
-      margin-right: 8px;
-      vertical-align: middle;
-      font-size: 14px;
-    }
-    .external-container .fc-external {
-      display: inline-flex !important;
-      vertical-align: middle;
-      margin: 4px 8px 4px 0;
-      min-width: 120px;
-      padding: 6px 10px;
-      white-space: nowrap;
-    }
-    .app-container {
-      margin: 6px;
-      padding: 8px;
-    }
-    .calendar-container .fc .fc-scrollgrid {
-      min-width: 0;
-      max-width: 100%;
-    }
-  }
+
 
   .modal {
     padding: 12px;
@@ -366,5 +399,45 @@ small {
   }
   .app-footer {
     font-size: 12px;
+  }
+}
+
+@media (max-width: 380px) {
+  /* compact, horizontally-scrollable sidebar for the smallest phones.
+     moved out of nested media and widened slightly to avoid a 361px gap. */
+  .external-container {
+    display: block;
+    width: 100%;
+    max-height: 80px;
+    min-height: 48px;
+    padding: 6px 4px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.03);
+    border-radius: 6px;
+  }
+  .external-container h3 {
+    display: inline-block;
+    margin-right: 8px;
+    vertical-align: middle;
+    font-size: 14px;
+  }
+  .external-container .fc-external {
+    display: inline-flex !important;
+    vertical-align: middle;
+    margin: 4px 8px 4px 0;
+    min-width: 100px;
+    padding: 6px 10px;
+    white-space: nowrap;
+    touch-action: none;
+  }
+  .app-container {
+    margin: 6px;
+    padding: 8px;
+  }
+  .calendar-container .fc .fc-scrollgrid {
+    min-width: 0;
+    max-width: 100%;
   }
 }

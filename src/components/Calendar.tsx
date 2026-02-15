@@ -35,7 +35,7 @@ export default function Calendar() {
   }>(null);
   const [supabaseError, setSupabaseError] = useState<string | null>(null);
 
-  // confirmation pending state used to force toast confirmation before reseed
+  // show a toast confirmation before seeding the weekly schedule
   const [seedConfirmationPending, setSeedConfirmationPending] = useState(false);
 
   useEffect(() => {
@@ -225,7 +225,10 @@ export default function Calendar() {
       return;
     }
 
-    // (confirmation moved to toast) — proceed with seeding
+    // confirmation handled via toast (button triggers a toast with a "Bekreft" action)
+    // proceed with seeding when seedWeeklySchedule is called directly
+    
+
     pushToast({
       id: `seed-start-${Date.now()}`,
       message: `Seeding weekly schedule (${weeks} weeks)...`,
@@ -644,7 +647,6 @@ export default function Calendar() {
             className="btn"
             onClick={() => {
               if (seedConfirmationPending) {
-                // already pending — remind user to confirm via toast
                 pushToast({
                   id: `seed-remind-${Date.now()}`,
                   message: "Bekreft i varselet (toast) for å gjenstarte ukeplanen.",
@@ -652,12 +654,12 @@ export default function Calendar() {
                 return;
               }
 
-              // show confirmation toast (user must click "Bekreft" in the toast)
               setSeedConfirmationPending(true);
               const toastId = `seed-confirm-${Date.now()}`;
               pushToast({
                 id: toastId,
-                message: `ADVARSEL: Gjenstart ukeplan for de neste 52 ukene. Dette vil opprette bookings i databasen. Er du sikker?`,
+                message:
+                  "ADVARSEL: Gjenstart ukeplan for de neste 52 ukene. Dette vil opprette bookings i databasen. Er du sikker?",
                 actionLabel: "Bekreft",
                 onAction: async () => {
                   setSeedConfirmationPending(false);
@@ -665,7 +667,7 @@ export default function Calendar() {
                 },
               });
 
-              // clear pending flag when toast auto-expires (slight buffer)
+              // clear pending flag when toast auto-expires (buffered)
               setTimeout(() => setSeedConfirmationPending(false), 8000);
             }}
             disabled={seedConfirmationPending}
@@ -673,8 +675,8 @@ export default function Calendar() {
             {seedConfirmationPending ? "Bekreft i varselet..." : "Gjenstart ukeplan (52 uker)"}
           </button>
           <small style={{ marginLeft: 8, color: "#666" }}>
-            Denne knappen gjenskaper ukeplanen for 52 uker frem i tid. Du må
-            trykke "Bekreft" i varselet for å fullføre handlingen.
+            Denne knappen gjenskaper ukeplanen for 52 uker frem i tid. Bekreft i
+            varselet for å fullføre handlingen.
           </small>
         </div>
       )}

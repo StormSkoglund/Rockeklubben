@@ -4,7 +4,11 @@ import Calendar from "./components/Calendar";
 export default function App() {
   return (
     <div className="app-container">
-      <h1>🤘🧑‍🎤🎸Rockeklubben Os🎤👨‍🎤🤘</h1>
+      <h1>
+        <span className="h1-emoji" aria-hidden="true">🤘🧑‍🎤🎸</span>
+        Rockeklubben Os
+        <span className="h1-emoji" aria-hidden="true">🎤👨‍🎤🤘</span>
+      </h1>
       <h2>Planlegg Øvetider</h2>
       <div className="layout">
         <DraggableNames />

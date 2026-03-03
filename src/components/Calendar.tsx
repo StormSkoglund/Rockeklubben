@@ -227,7 +227,6 @@ export default function Calendar() {
 
     // confirmation handled via toast (button triggers a toast with a "Bekreft" action)
     // proceed with seeding when seedWeeklySchedule is called directly
-    
 
     pushToast({
       id: `seed-start-${Date.now()}`,
@@ -649,7 +648,8 @@ export default function Calendar() {
               if (seedConfirmationPending) {
                 pushToast({
                   id: `seed-remind-${Date.now()}`,
-                  message: "Bekreft i varselet (toast) for å gjenstarte ukeplanen.",
+                  message:
+                    "Bekreft i varselet (toast) for å gjenstarte ukeplanen.",
                 });
                 return;
               }
@@ -672,7 +672,9 @@ export default function Calendar() {
             }}
             disabled={seedConfirmationPending}
           >
-            {seedConfirmationPending ? "Bekreft i varselet..." : "Gjenstart ukeplan (52 uker)"}
+            {seedConfirmationPending
+              ? "Bekreft i varselet..."
+              : "Gjenstart ukeplan (52 uker)"}
           </button>
           <small style={{ marginLeft: 8, color: "#666" }}>
             Denne knappen gjenskaper ukeplanen for 52 uker frem i tid. Bekreft i

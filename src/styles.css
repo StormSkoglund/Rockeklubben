@@ -93,7 +93,9 @@ body.is-dragging {
 
 /* make sure child elements of the mirror inherit touch-action so the
    browser does not treat the gesture as a scroll */
-.fc-event-mirror * { touch-action: none !important; }
+.fc-event-mirror * {
+  touch-action: none !important;
+}
 
 /* Sidebar is horizontally scrollable on small screens — allow horizontal
    panning there but avoid the browser deciding the gesture is a vertical
@@ -337,7 +339,9 @@ small {
   }
 
   /* hide decorative emoji in the H1 on small screens to tidy the header */
-  .h1-emoji { display: none !important; }
+  .h1-emoji {
+    display: none !important;
+  }
 
   /* give the page more usable width on tiny screens */
   .app-container {
@@ -390,8 +394,6 @@ small {
   .calendar-container .fc .fc-col-header-cell {
     padding: 2px 4px !important;
   }
-
-
 
   .modal {
     padding: 12px;

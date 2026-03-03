@@ -5,9 +5,13 @@ export default function App() {
   return (
     <div className="app-container">
       <h1>
-        <span className="h1-emoji" aria-hidden="true">🤘🧑‍🎤🎸</span>
+        <span className="h1-emoji" aria-hidden="true">
+          🤘🧑‍🎤🎸
+        </span>
         Rockeklubben Os
-        <span className="h1-emoji" aria-hidden="true">🎤👨‍🎤🤘</span>
+        <span className="h1-emoji" aria-hidden="true">
+          🎤👨‍🎤🤘
+        </span>
       </h1>
       <h2>Planlegg Øvetider</h2>
       <div className="layout">

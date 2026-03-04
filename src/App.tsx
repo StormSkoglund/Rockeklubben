@@ -13,7 +13,7 @@ export default function App() {
           🎤👨‍🎤🤘
         </span>
       </h1>
-      <h2>Planlegg Øvetider</h2>
+
       <div className="layout">
         <DraggableNames />
         <Calendar />

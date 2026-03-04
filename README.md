@@ -40,6 +40,7 @@ SQL note: the table now stores hourly `start_ts` / `end_ts` and enforces no over
 - Realtime updates: bookings made in one browser appear in other open sessions automatically.
 - Undo toast: after creating/rescheduling a booking you get an "Undo" toast to quickly cancel it.
 - Cancel / Reschedule: click an existing booking to cancel it or pick a new date to reschedule.
+- **Admin-only action**: the “Gjenstart ukeplan” button has been moved to a hidden administration page. Visit `/admin` (or click the small “Admin” link in the header) to access it; it is not shown on the normal scheduling UI to avoid accidental presses.
 
 ## Files
 

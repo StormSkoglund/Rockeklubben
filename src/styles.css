@@ -34,14 +34,18 @@ body {
   flex-wrap: wrap; /* allow sidebar/calendar to wrap on narrow widths */
 }
 .external-container {
+  /* keep the sidebar at its original desktop width; we will shrink the
+     individual items on small viewports instead of touching the container. */
   width: 220px;
   flex: 0 0 220px;
-  min-width: 160px;
+  min-width: 140px;
   background: #fff;
   border: 1px solid #eee;
-  padding: 12px;
+  padding: 12px 20px 12px 12px; /* extra right padding for scroll zone */
   border-radius: 8px;
 }
+
+/* default external item styling (applies on all viewports) */
 .fc-external {
   background: linear-gradient(180deg, goldenrod, gold);
   box-shadow: 0px 1px 0px 2.5px;
@@ -51,6 +55,10 @@ body {
   border: 1px solid #dfe9ff;
   font-weight: bolder;
   cursor: grab;
+  /* make each item a bit narrower than the container so there’s
+     a gap on the right for the finger when scrolling */
+  width: calc(100% - 12px);
+  box-sizing: border-box;
   /* mobile / touch: ensure pointer events go to the draggable item (prevent container/page panning) */
   touch-action: none;
   -ms-touch-action: none;
@@ -59,6 +67,15 @@ body {
   -webkit-user-drag: none;
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
+}
+
+/* for very narrow screens, make each draggable item half the container
+   width so a finger can fit beside it. the sidebar remains fixed width so
+   it doesn't trigger horizontal scrolling later in the layout */
+@media (max-width: 640px) {
+  .fc-external {
+    width: 50% !important;
+  }
 }
 .fc-external:active {
   cursor: grabbing;
@@ -97,12 +114,20 @@ body.is-dragging {
   touch-action: none !important;
 }
 
-/* Sidebar is horizontally scrollable on small screens — allow horizontal
-   panning there but avoid the browser deciding the gesture is a vertical
-   page scroll when touching a draggable item. */
+/* Sidebar is horizontally scrollable on small screens — allow both
+   horizontal and vertical panning so that draggable items can be moved
+   vertically (e.g. onto the calendar) while still permitting a touch
+   scrollbar. We continue to rely on the JS `is-dragging` class to disable
+   scrolling during an active drag. */
 .external-container {
-  touch-action: pan-x;
-  -ms-touch-action: pan-x;
+  /* enable vertical touches as well; the script prevents scrolling during
+     an active drag so we won't fight the browser */
+  touch-action: pan-x pan-y;
+  -ms-touch-action: pan-x pan-y;
+  /* allow the list to scroll if it's taller than the viewport */
+  overflow-y: auto;
+  max-height: 80vh;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Calendar area should primarily pan vertically — prevent horizontal

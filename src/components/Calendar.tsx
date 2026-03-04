@@ -21,6 +21,8 @@ type ToastItem = {
   message: string;
   actionLabel?: string;
   onAction?: () => void;
+  cancelLabel?: string;
+  onCancel?: () => void;
 };
 
 export default function Calendar() {
@@ -37,6 +39,13 @@ export default function Calendar() {
 
   // show a toast confirmation before seeding the weekly schedule
   const [seedConfirmationPending, setSeedConfirmationPending] = useState(false);
+
+  // render the seed button only when the app is accessed at /admin.
+  // leaving it in the component keeps the logic simple without introducing
+  // routing libraries.
+  const isAdmin =
+    typeof window !== "undefined" &&
+    window.location.pathname.replace(/\/+$/, "") === "/admin";
 
   useEffect(() => {
     loadBookings();
@@ -640,7 +649,7 @@ export default function Calendar() {
         />
       </div>
 
-      {isSupabaseConfigured && (
+      {isSupabaseConfigured && isAdmin && (
         <div style={{ marginTop: 12 }}>
           <button
             className="btn"
@@ -714,7 +723,21 @@ export default function Calendar() {
             <div className="modal-actions">
               <button
                 className="btn btn-danger"
-                onClick={() => deleteBooking(modalEvent.id)}
+                onClick={() => {
+                  // ask user to confirm deletion via toast
+                  pushToast({
+                    id: `confirm-del-${modalEvent.id}`,
+                    message: `Er du helt sikker på at du vil fjerne tiden til ${modalEvent.title}?`,
+                    // primary confirm
+                    actionLabel: "Ja",
+                    onAction: () => deleteBooking(modalEvent.id),
+                    // secondary cancel option
+                    cancelLabel: "Nej",
+                    onCancel: () => {
+                      /* just close the toast */
+                    },
+                  });
+                }}
               >
                 Cancel booking
               </button>

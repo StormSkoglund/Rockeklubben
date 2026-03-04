@@ -32,6 +32,20 @@ SQL note: the table now stores hourly `start_ts` / `end_ts` and enforces no over
   3. Run the verification SQL in Supabase SQL editor: `SELECT * FROM public.bookings LIMIT 5;` or check `pg_policies`.
   4. Ensure `.env` values are correct and restart the dev server.
 
+### Deploying to Netlify
+
+Because this is a single-page React app, you must add a redirect so that any
+path (including `/admin`) returns `index.html`. Netlify will otherwise return a
+404 when you refresh or navigate directly to a client-side route. A suitable
+`public/_redirects` file is included in this repo:
+
+```
+/*    /index.html   200
+```
+
+This is copied to `dist/` on build; make sure the file is present in your
+published folder so that accessing `/admin` works correctly.
+
 ## Behavior
 
 - Drag a name from the left column onto a date to create a booking.

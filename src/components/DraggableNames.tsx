@@ -14,6 +14,7 @@ const NAMES = [
   "Mads Røykenes",
   "Grim Spencer",
   "Jon Hægland",
+  "Who's That",
 ];
 
 export default function DraggableNames() {

@@ -1,12 +1,12 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import type { EventInput } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 // FullCalendar CSS is loaded from CDN in index.html (vite couldn't resolve the package CSS)
-import { supabase, isSupabaseConfigured } from "../lib/supabase";
-import Toast from "./Toast";
+import { supabase, isSupabaseConfigured } from "../lib/supabase.js";
+import Toast from "./Toast.js";
 
 type BookingRow = {
   id: string;
@@ -53,7 +53,6 @@ export default function Calendar() {
     // Realtime subscription (only if Supabase configured)
     let channelRef: any = null;
     const setupRealtime = async () => {
-      const { isSupabaseConfigured } = await import("../lib/supabase");
       if (!isSupabaseConfigured) return;
 
       const ch = supabase
@@ -224,6 +223,23 @@ export default function Calendar() {
     return d;
   }
 
+  function getIsoWeekNumber(d: Date) {
+    const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    const day = date.getUTCDay() || 7; // Mon=1..Sun=7
+    date.setUTCDate(date.getUTCDate() + 4 - day);
+    const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+    return Math.ceil(
+      ((date.getTime() - yearStart.getTime()) / 86400000 + 1) / 7,
+    );
+  }
+
+  function getWeekAwareName(tpl: { names: string | string[] }, dayDate: Date) {
+    if (!Array.isArray(tpl.names)) return tpl.names;
+    const weekNum = getIsoWeekNumber(dayDate);
+    const index = weekNum % 2 === 1 ? 0 : 1; // odd -> Warfart idx 0, even -> Verdiløse idx 1
+    return tpl.names[index];
+  }
+
   // Manually seed the weekly plan into the bookings table for N weeks
   async function seedWeeklySchedule(weeks = 52) {
     if (!isSupabaseConfigured) {
@@ -249,10 +265,8 @@ export default function Calendar() {
 
     for (let w = 0; w < weeks; w++) {
       for (const tpl of WEEKLY_TEMPLATES) {
-        const bandName = Array.isArray(tpl.names)
-          ? tpl.names[w % tpl.names.length]
-          : tpl.names;
         const dayDate = getDateForWeekday(today, tpl.weekday, w);
+        const bandName = getWeekAwareName(tpl, dayDate);
         const startDt = setTime(dayDate, tpl.startTime);
         const endDt = setTime(dayDate, tpl.endTime);
 

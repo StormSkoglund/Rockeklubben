@@ -86,6 +86,23 @@ function setTime(dt, timeStr) {
   return d;
 }
 
+function getIsoWeekNumber(d) {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = date.getUTCDay() || 7; // Mon=1..Sun=7
+  date.setUTCDate(date.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
+  return weekNo;
+}
+
+function getWeekAwareName(tpl, dayDate) {
+  if (!Array.isArray(tpl.names)) return tpl.names;
+  // requested: Warfart on odd ISO week numbers, Verdiløse Menn on even.
+  const weekNum = getIsoWeekNumber(dayDate);
+  const index = weekNum % 2 === 1 ? 0 : 1;
+  return tpl.names[index];
+}
+
 function toYMD(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
@@ -138,10 +155,8 @@ async function main() {
 
   for (let w = 0; w < weeks; w++) {
     for (const tpl of WEEKLY_TEMPLATES) {
-      const bandName = Array.isArray(tpl.names)
-        ? tpl.names[w % tpl.names.length]
-        : tpl.names;
       const dayDate = getDateForWeekday(today, tpl.weekday, w);
+      const bandName = getWeekAwareName(tpl, dayDate);
       const startDt = setTime(dayDate, tpl.startTime);
       const endDt = setTime(dayDate, tpl.endTime);
 

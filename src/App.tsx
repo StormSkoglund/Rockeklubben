@@ -1,5 +1,5 @@
-import DraggableNames from "./components/DraggableNames";
-import Calendar from "./components/Calendar";
+import DraggableNames from "./components/DraggableNames.js";
+import Calendar from "./components/Calendar.js";
 
 export default function App() {
   return (

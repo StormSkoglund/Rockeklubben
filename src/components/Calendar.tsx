@@ -1,12 +1,12 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import type { EventInput } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 // FullCalendar CSS is loaded from CDN in index.html (vite couldn't resolve the package CSS)
-import { supabase, isSupabaseConfigured } from "../lib/supabase";
-import Toast from "./Toast";
+import { supabase, isSupabaseConfigured } from "../lib/supabase.js";
+import Toast from "./Toast.js";
 
 type BookingRow = {
   id: string;
@@ -53,7 +53,6 @@ export default function Calendar() {
     // Realtime subscription (only if Supabase configured)
     let channelRef: any = null;
     const setupRealtime = async () => {
-      const { isSupabaseConfigured } = await import("../lib/supabase");
       if (!isSupabaseConfigured) return;
 
       const ch = supabase

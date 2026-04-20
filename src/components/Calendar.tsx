@@ -584,6 +584,7 @@ export default function Calendar() {
       <div className="calendar-scroll-wrapper">
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+          firstDay={1}
           initialView="timeGridWeek"
           headerToolbar={{
             left: "prev,next today",
